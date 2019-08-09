@@ -1,2 +1,3 @@
-# functional-programming
-exercises scala
+# Functional programming
+
+Exercises scala
