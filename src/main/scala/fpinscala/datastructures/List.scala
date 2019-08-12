@@ -42,8 +42,6 @@ object List {
     case Nil=> throw new NoSuchElementException
   }
 
-
-
   def lastNthRecursive[A](n: Int, ls: List[A]): A = {
     @tailrec
      def lastNthR[A](count: Int, resultList: List[A], curList: List[A]): A =
@@ -78,10 +76,27 @@ object List {
     len(l, 0)
   }
 
-  //def lengthFunctional[A](ls: List[A]): Int = ls.foldLeft(0) { (c, _) => c + 1 }
+  def foldRight[A,B](l:List[A], z: B)(f: (A,B) => B): B = l match {
+    case Nil => z
+    case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+  }
 
+  def foldLeft[A,B](l:List[A], z: B)(f: (B,A) => B): B = l match {
+    case Nil => z
+    case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+  }
 
+  def reverse[A](l: List[A]) : List[A] = foldLeft(l, List[A]())((tail, h) => Cons(h, tail))
 
+  def foldRightViaFoldLeft[A, B] (l: List[A], z: B ) (f: (A,B) => B ) :  B = foldLeft(reverse(l), z)((b,a)=> f(a,b))
+
+  def foldRightViaFoldLeft_2[A, B] (l: List[A], z: B ) (f: (A,B) => B ) :  B = foldLeft(l, (b:B) => b)((g,a)=> b => g(f(a,b)))(z)
+
+  def foldLeftViaFoldRight[A, B] (l: List[A], z: B ) (f: (B,A) => B ) :  B = foldRight(l, (b:B) => b)((a,g)=> b => g(f(b,a)))(z)
+
+  def lengthFunctional[A](ls: List[A]): Int = foldLeft(ls, 0) { (c, _) => c + 1 }
+
+  def isPalindrome[A](l: List[A]) : Boolean = l == reverse(l)
 
   def apply[A](as: A*) : List[A] =
     if(as.isEmpty) Nil
@@ -93,7 +108,7 @@ object List {
     val example = Cons(1, Cons(2, Cons(3, Nil)))
     val example2 = List(1,2,3,10,2,6,5,8,9,7,4)
     val total = sum(example)
-    println(lengthR(example2))
+    println(lengthFunctional(example2))
   }
 
 }
