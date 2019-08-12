@@ -98,6 +98,21 @@ object List {
 
   def isPalindrome[A](l: List[A]) : Boolean = l == reverse(l)
 
+  def append[A](l: List[A], r: List[A]): List[A] = foldRight(l, r)(Cons(_, _))
+
+  def concat[A](l: List[List[A]]): List[A] = foldRight(l, Nil:List[A])(append)
+
+  def map[A,B](l: List[A])(f: A => B): List[B] = foldRightViaFoldLeft(l, Nil:List[B])((h, tail) => Cons(f(h), tail))
+
+  def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = concat(map(l)(f))
+
+  def flatten[A](ls: List[A]): List[A] = flatMap(ls) {
+    case ms: List[A] => flatten(ms)
+    case e => List(e)
+  }
+
+  def compress[A](l: List[A]): List[A] = foldRight(l, List[A]())((h, tail) => if (head(tail) != h) Cons(h, tail) else tail)
+
   def apply[A](as: A*) : List[A] =
     if(as.isEmpty) Nil
     else Cons(as.head, apply(as.tail:_*))
@@ -106,9 +121,9 @@ object List {
 
   def main(args: Array[String]): Unit = {
     val example = Cons(1, Cons(2, Cons(3, Nil)))
-    val example2 = List(1,2,3,10,2,6,5,8,9,7,4)
+    val example2 = List(1,2,3,10,2,6,6,5,8,9,7,4)
     val total = sum(example)
-    println(lengthFunctional(example2))
+    println(head(example2))
   }
 
 }
