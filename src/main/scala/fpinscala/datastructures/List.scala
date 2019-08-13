@@ -37,6 +37,11 @@ object List {
     case Nil=> throw new NoSuchElementException
   }
 
+  def headOption[A](l:List[A]): Option[A] = l match {
+    case Cons(h , _) => Some(h)
+    case Nil=> None
+  }
+
   def tail[A](l:List[A]): List[A] = l match {
     case Cons(_ , xs) => xs
     case Nil=> throw new NoSuchElementException
@@ -111,7 +116,30 @@ object List {
     case e => List(e)
   }
 
-  def compress[A](l: List[A]): List[A] = foldRight(l, List[A]())((h, tail) => if (head(tail) != h) Cons(h, tail) else tail)
+  def compress[A](l: List[A]): List[A] = foldRightViaFoldLeft(l, List[A]())((h, tail) => if (headOption(tail) != Some(h)) Cons(h, tail) else tail)
+
+  def pack[A](l: List[A]): List[List[A]] = foldRightViaFoldLeft(l, List[List[A]]())((h, tail) => if (headOption(headOption(tail).getOrElse(Nil)) != Some(h)) Cons(List(h), tail) else Cons(append(List(h), headOption(tail).getOrElse(Nil)), List.tail(tail)))
+
+  def encode[A](l:List[A]) : List[(Int, A)] = map(pack(l))(e => (length(e), head(e)))
+
+  def encodeModified[A](l: List[A]) : List[Any] = map(encode(l))(e => if(e._1 > 1) e else e._2)
+
+  //typesafe
+  def encodeModified_2[A](l: List[A]) : List[Either[A, (Int, A)]] = map(encode(l))(e => if (e._1 == 1) Left(e._2) else Right(e))
+
+
+  def fill[A](e: A, n: Int) : List[A] = {
+    var i = 0
+    var l = List[A]()
+    while( i < n){
+      l = append(l, List(e))
+      i += 1
+    }
+    l
+  }
+
+  def decode[A](l: List[(Int, A)]): List[A] = flatMap(l)(e => fill(e._2,e._1))
+
 
   def apply[A](as: A*) : List[A] =
     if(as.isEmpty) Nil
@@ -120,10 +148,14 @@ object List {
 
 
   def main(args: Array[String]): Unit = {
-    val example = Cons(1, Cons(2, Cons(3, Nil)))
-    val example2 = List(1,2,3,10,2,6,6,5,8,9,7,4)
+    val example = Cons(1, Cons(3, Cons(3, Nil)))
+    val example1 = Cons(1, Cons(2, Cons(3, Nil)))
+
+    val example2 = List(1,2,3,3,10,2,6,6,5,8,9,7,4, 4, 4, 4)
     val total = sum(example)
-    println(head(example2))
+    //println(append(List(1), List(1)))
+    println(decode(encode(example2)))
+    //println(pack(example1))
   }
 
 }
