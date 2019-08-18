@@ -9,6 +9,9 @@ case class Cons[+A] (head:A, tail:List[A]) extends List[A]
 
 object List {
 
+/* The singly-linked list (also called a cons list)  good performance for linear traversal, not very good for
+  random access or list concatenation.*/
+
   def sum(ints:List[Int]): Int = ints match {
     case Nil => 0
     case Cons(x, xs) => x + sum(xs)
