@@ -47,6 +47,12 @@ object List {
     case Nil=> throw new NoSuchElementException
   }
 
+  def dropWhile[A](l: List[A], f: A => Boolean): List[A] =
+    l match {
+      case Cons(h,t) if f(h) => dropWhile(t, f)
+      case _ => l
+    }
+
   def lastNthRecursive[A](n: Int, ls: List[A]): A = {
     @tailrec
      def lastNthR[A](count: Int, resultList: List[A], curList: List[A]): A =
@@ -111,6 +117,15 @@ object List {
 
   def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = concat(map(l)(f))
 
+  def partition[A](l: List[A])(f: A => Boolean): (List[A], List[A]) = foldRightViaFoldLeft(l, (List[A](), List[A]()))((h, tail) => if(f(h)) (append(tail._1, List(h)), tail._2) else (tail._1, append(tail._2, List(h))))
+
+  def groupBy[A](l: List[A])(f: A => Boolean): Map[Boolean, List[A]] = Map(true -> partition(l)(f)._1, false -> partition(l)(f)._2)
+
+  def span[A](l: List[A])(f: A => Boolean): (List[A], List[A]) = foldLeft(l, (List[A](), List[A]()))((tail, h) => if(!f(h)) return  (reverse(tail._1), dropWhile(l , f)) else (append(List(h), tail._1), tail._2))
+
+
+  //def splitAt[A](l: List[A], i: Int): (List[A], List[A])
+
   def flatten[A](ls: List[A]): List[A] = flatMap(ls) {
     case ms: List[A] => flatten(ms)
     case e => List(e)
@@ -141,6 +156,18 @@ object List {
   def decode[A](l: List[(Int, A)]): List[A] = flatMap(l)(e => fill(e._2,e._1))
 
 
+  def encodeDirect[A](ls: List[A]): List[(Int, A)] =
+  if (ls == Nil) Nil
+  else {
+    val (packed, next) = span(ls)( _ == head(ls) )
+    Cons((length(packed), head(packed)), encodeDirect(next))
+  }
+
+  def duplicate[A](l: List[A]) : List[A] = flatMap(l)(e => List(e,e))
+
+  def duplicateN[A](n: Int, l:List[A]): List[A] = flatMap(l)(e => fill(e, n))
+
+
   def apply[A](as: A*) : List[A] =
     if(as.isEmpty) Nil
     else Cons(as.head, apply(as.tail:_*))
@@ -150,11 +177,12 @@ object List {
   def main(args: Array[String]): Unit = {
     val example = Cons(1, Cons(3, Cons(3, Nil)))
     val example1 = Cons(1, Cons(2, Cons(3, Nil)))
+    val x = List(15, 10, 5, 8, 20, 12)
 
-    val example2 = List(1,2,3,3,10,2,6,6,5,8,9,7,4, 4, 4, 4)
+    val example2 = List(1,2,3,3,2,6,6,5,8,9,7,4, 3, 4, 4)
     val total = sum(example)
     //println(append(List(1), List(1)))
-    println(decode(encode(example2)))
+    println(duplicateN(5, example))
     //println(pack(example1))
   }
 
